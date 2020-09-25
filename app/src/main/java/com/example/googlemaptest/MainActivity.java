@@ -2,11 +2,11 @@ package com.example.googlemaptest;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.hardware.SensorListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,80 +16,87 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import android.provider.Settings;
-import android.text.InputType;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
         implements LocationListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener
                     , ExampleDialog.ExampleDialogListener {
-    private GoogleMap map;
-    LatLng currPoint;
-    TextView txv;
 
-    static final int MIN_TIME = 50000;//毫秒
-    static final float MIN_DIST = 0;
-    LocationManager mgr;
+    private GoogleMap map;  //操控地圖的物件
+    LatLng currPoint;   //儲存目前的位置
+    TextView tv;
 
-    boolean isGPSEnabled;
-    boolean isNetworkEnabled;
-    boolean permissionRequested = false;
+    static final int MIN_TIME = 50000;  //位置更新條件：50000 毫秒
+    static final float MIN_DIST = 0;    //位置更新條件：5 公尺
+    LocationManager mgr;    // 定位管理員
 
-    private String myText;
+    boolean isGPSEnabled;   //GPS定位是否可用
+    boolean isNetworkEnabled;   //網路定位是否可用
+
+    static final String db_name="testDB";
+    static final String tb_name="test";
+    SQLiteDatabase db;
+
+    Double latitude;
+    Double longitude;
+
+    Marker m = null;
+    SharedPreferences prefs = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        //取得系統服務的LocationManager物件
         mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
-        txv = (TextView)  findViewById(R.id.txv);
+        // 檢查若尚未授權, 則向使用者要求定位權限
+        checkPermission();
 
+        tv = findViewById(R.id.tv);
+
+        //取得佈局上的 map 元件
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        checkPermission();
+        mapFragment.getMapAsync(this);  //註冊 Google Map onMapReady 事件監聽器
 
-        /*db = openOrCreateDatabase(db_name,  Context.MODE_PRIVATE, null);
+        db =    openOrCreateDatabase(db_name,  Context.MODE_PRIVATE, null);
+        //https://stackoverflow.com/questions/24511031/openorcreatedatabase-undefined-in-the-fragment-class
 
         String createTable="CREATE TABLE IF NOT EXISTS " +
                 tb_name +			// 資料表名稱
-                "(name VARCHAR(32), " +	//名稱欄位
-                //"coordinate VARCHAR(32), " +	//座標欄位
-                "info VARCHAR(64))";	//資訊欄位
-        db.execSQL(createTable);	// 建立資料表*/
-
+                "(_id INTEGER PRIMARY KEY AUTOINCREMENT, " + //索引欄位
+                "name VARCHAR(32), " +	//名稱欄位
+                "latitude REAL(64), "  +	//座標欄位
+                "longitude REAL(64), " +	//座標欄位
+                "info VARCHAR(64))" ;	//資訊欄位
+        db.execSQL(createTable);	// 建立資料表
+        
         //db.close();
     }
+
 
     @Override
     public void onMapLongClick(LatLng point) {
@@ -97,12 +104,18 @@ public class MainActivity extends AppCompatActivity
                 .position(point)
                 .title("新增地標")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.m1)));
 
-        openDialog();
-    }
+        latitude = point.latitude;
+        longitude = point.longitude;
 
-    public void openDialog(){
         ExampleDialog exampleDialog = new ExampleDialog();
+        Bundle bundle = new Bundle();
+        bundle.putDouble("latitude", latitude);
+        bundle.putDouble("longitude", longitude);
+        exampleDialog.setArguments(bundle);
+
+        // 顯示交談窗
         exampleDialog.show(getSupportFragmentManager(), "example dialog");
     }
 
@@ -114,18 +127,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        enableLocationUpdates(true);
+        enableLocationUpdates(true);    //開啟定位更新功能
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        enableLocationUpdates(false);
+        enableLocationUpdates(false);   //關閉定位更新功能
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        //將功能表載入到 menu 物件
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -133,16 +146,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) { // 依照選項的 id 來處理
-            case R.id.mark:
-                //map.clear();
-                map.addMarker(new MarkerOptions()
-                        .position(map.getCameraPosition().target)
-                        .title("到此一遊"));
-                break;
             case R.id.markersetting:
                 Intent it = new Intent();
-                it.setClass(this, InsertMarker.class);
+                it.setClass(this, com.example.googlemaptest.Settings.class);
                 startActivity(it);
+                break;
+            case R.id.markerlist:
+                Intent it2 = new Intent();
+                it2.setClass(this, MarkerList.class);
+                startActivity(it2);
                 break;
             case R.id.satellite:
                 item.setChecked(!item.isChecked()); // 切換功能表項目的打勾狀態
@@ -178,23 +190,24 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    //第2.3.4個也是 LocationListener 介面的方法, 未用到
     @Override
     public void onLocationChanged(Location location){
         if(location != null) { // 如果可以取得座標
-            txv.setText(String.format("緯度 %.4f, 經度 %.4f (%s 定位 )",
+            tv.setText(String.format("緯度 %.4f, 經度 %.4f (%s 定位 )",
                     location.getLatitude(),  // 目前緯度
                     location.getLongitude(), // 目前經度
                     location.getProvider()));// 定位方式
 
-            currPoint = new LatLng(                //依照目前經緯度建立LatLng 物件
+            currPoint = new LatLng(          //依照目前經緯度建立LatLng 物件
                     location.getLatitude(), location.getLongitude());
-            if (map != null) { // 如果 Google Map 已經啟動完畢
+            if (map != null) {              // 如果 Google Map 已經啟動完畢
                 map.animateCamera(CameraUpdateFactory.newLatLng(currPoint)); // 將地圖中心點移到目前位置
                 map.addMarker(new MarkerOptions().position(currPoint).title("目前位置")); //標記目前位置
             }
         }
         else { // 無法取得座標
-            txv.setText("暫時無法取得定位資訊...");
+            tv.setText("暫時無法取得定位資訊...");
         }
     }
 
@@ -207,6 +220,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onProviderDisabled(String provider){}
 
+    //檢查若尚未授權, 則向使用者要求定位權限
     private void checkPermission() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -216,6 +230,7 @@ public class MainActivity extends AppCompatActivity
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 200);
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == 200){
@@ -261,12 +276,10 @@ public class MainActivity extends AppCompatActivity
         map = googleMap;  //取得 Google Map 物件, 此物件可以操控地圖
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL); //設定地圖為普通街道模式
         map.moveCamera(CameraUpdateFactory.zoomTo(18));  //將地圖縮放級數改為 18
-
         map.getUiSettings().setZoomControlsEnabled(true);
         map.getUiSettings().setCompassEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
         map.getUiSettings().setMapToolbarEnabled(true);
-
         map.setOnMapLongClickListener(this);
     }
 }

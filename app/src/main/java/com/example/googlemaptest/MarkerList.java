@@ -18,11 +18,12 @@ import android.widget.TextView;
 
 public class MarkerList extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
-    static final String db_name="testDB";
     static final String tb_name="test";
-    //static final int MAX=20;
-    static final String[] FROM=new String[] {"name","info"};
+    static final String[] FROM=new String[] {"name", "latitude", "longitude", "info"};
+
+    static final String db_name="testDB";
     SQLiteDatabase db;
+
     Cursor cur;
     SimpleCursorAdapter adapter;
     EditText edtName,edtInfo;
@@ -39,26 +40,27 @@ public class MarkerList extends AppCompatActivity implements AdapterView.OnItemC
         btnDelete =findViewById(R.id.btnDelete);
 
         db = openOrCreateDatabase(db_name,  Context.MODE_PRIVATE, null);
+        //https://stackoverflow.com/questions/24511031/openorcreatedatabase-undefined-in-the-fragment-class
 
         cur=db.rawQuery("SELECT * FROM "+tb_name, null);
 
         adapter=new SimpleCursorAdapter(this,
                 R.layout.item, cur,
                 FROM,
-                new int[] {R.id.name,R.id.info}, 0);
+                new int[] {R.id.name,R.id.latitude,R.id.longitude,R.id.info}, 0);
 
         lv=findViewById(R.id.lv);
         lv.setAdapter(adapter);			 // 設定 Adapter
         lv.setOnItemClickListener(this); // 設定按下事件的監聽器
         requery();	// 呼叫自訂方法, 重新查詢及設定按鈕狀態
 
-        //db.close();
     }
 
     private void update(String name, String info, int id) {
         ContentValues cv=new ContentValues(2);
         cv.put(FROM[0], name);
-        cv.put(FROM[1], info);
+        cv.put(FROM[3], info);
+
 
         db.update(tb_name, cv, "_id="+id, null);	// 更新 id 所指的欄位
     }
@@ -72,11 +74,11 @@ public class MarkerList extends AppCompatActivity implements AdapterView.OnItemC
     //@Override
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         cur.moveToPosition(position); //	移動 Cursor 至使用者選取的項目
-        // 讀出姓名,電話,Email資料並顯示
+
         edtName.setText(cur.getString(
                 cur.getColumnIndex(FROM[0])));
         edtInfo.setText(cur.getString(
-                cur.getColumnIndex(FROM[1])));
+                cur.getColumnIndex(FROM[3])));
 
         btnUpdate.setEnabled(true);	// 啟用更新鈕
         btnDelete.setEnabled(true);	// 啟用刪除鈕

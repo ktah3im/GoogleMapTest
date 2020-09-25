@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="一般設定">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="switch_preference_1"
+            android:title="開啟標記" />
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/Marker"
+            android:entryValues="@array/MarkerValue"
+            android:key="list_preference_1"
+            android:title="更換標記"
+            android:dependency="switch_preference_1"/>
+    </PreferenceCategory>
+</PreferenceScreen>

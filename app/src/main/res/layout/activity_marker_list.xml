@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#303030"
+    android:background="#FFFFFF"
     tools:context=".MarkerList">
 
     <LinearLayout
@@ -28,7 +28,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Name:"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:textSize="24sp" />
 
             <EditText
@@ -38,7 +38,7 @@
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:textColor="#FFFFFF" />
+                android:textColor="#000000" />
         </LinearLayout>
 
         <LinearLayout
@@ -52,7 +52,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Info:"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:textSize="24sp" />
 
             <EditText
@@ -62,7 +62,7 @@
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="textPersonName|text"
-                android:textColor="#FFFFFF" />
+                android:textColor="#000000" />
         </LinearLayout>
 
         <LinearLayout

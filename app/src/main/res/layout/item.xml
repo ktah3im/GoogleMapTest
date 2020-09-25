@@ -2,13 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="#FFFFFF"
     android:orientation="horizontal">
 
     <TextView
         android:id="@+id/name"
         android:layout_width="294dp"
-        android:layout_height="wrap_content"
+        android:layout_height="58dp"
         android:layout_weight="1"
         android:text="TextView"
         android:textColor="#FF5722"
@@ -21,15 +21,21 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/coordinate"
+            android:id="@+id/latitude"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF" />
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/longitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000" />
 
         <TextView
             android:id="@+id/info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF" />
+            android:textColor="#000000" />
     </LinearLayout>
 </LinearLayout>

@@ -16,9 +16,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
 public class ExampleDialog extends AppCompatDialogFragment {
-    private EditText editTextName;
-    private EditText editTextInfo;
+    private EditText edtName;
+    private EditText edtInfo;
     private ExampleDialogListener listener;
+
+    Double latitude;
+    Double longitude;
 
     static final String db_name="testDB";
     static final String tb_name="test";
@@ -31,35 +34,32 @@ public class ExampleDialog extends AppCompatDialogFragment {
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_dialog, null);
+        edtName = view.findViewById(R.id.edtName);
+        edtInfo = view.findViewById(R.id.edtInfo);
 
-        editTextName = view.findViewById(R.id.editTextName);
-        editTextInfo = view.findViewById(R.id.editTextInfo);
+        Bundle bundle = getArguments();
+        latitude = bundle.getDouble("latitude");
+        longitude= bundle.getDouble("longitude");;
 
         db = getActivity().openOrCreateDatabase(db_name,  Context.MODE_PRIVATE, null);
         //https://stackoverflow.com/questions/24511031/openorcreatedatabase-undefined-in-the-fragment-class
-
-        String createTable="CREATE TABLE IF NOT EXISTS " +
-                tb_name +			// 資料表名稱
-                "(_id INTEGER PRIMARY KEY AUTOINCREMENT, " + //索引欄位
-                "name VARCHAR(32), " +	//名稱欄位
-                //"coordinate VARCHAR(32), " +	//座標欄位
-                "info VARCHAR(64))";	//資訊欄位
-        db.execSQL(createTable);	// 建立資料表
 
         builder.setView(view)
                 .setTitle("新增地標")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String name = editTextName.getText().toString();
-                        String info = editTextInfo.getText().toString();
+                        String name = edtName.getText().toString();
+                        String info = edtInfo.getText().toString();
                         listener.applyTexts(name, info);
-                        ContentValues cv = new ContentValues(2); //3>2
-                        cv.put("name", name);
-                        //cv.put("coordinate", );
-                        cv.put("info", info);
 
+                        ContentValues cv = new ContentValues(2);
+                        cv.put("name", name);
+                        cv.put("latitude", latitude);
+                        cv.put("longitude", longitude);
+                        cv.put("info", info);
                         db.insert(tb_name, null, cv);
+
                     }
                 })
                 .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -68,7 +68,6 @@ public class ExampleDialog extends AppCompatDialogFragment {
 
                     }
                 });
-        //db.close();
         return builder.create();
     }
 

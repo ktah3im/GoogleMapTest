@@ -4,7 +4,7 @@
     android:padding="16dp">
 
     <EditText
-        android:id="@+id/editTextName"
+        android:id="@+id/edtName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -12,13 +12,14 @@
         android:inputType="textPersonName" />
 
     <EditText
-        android:id="@+id/editTextInfo"
+        android:id="@+id/edtInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/editTextName"
+        android:layout_below="@+id/edtName"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:ems="10"
         android:hint="地標資訊"
         android:inputType="textPersonName" />
+
 </RelativeLayout>
