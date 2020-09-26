@@ -61,7 +61,6 @@ public class MarkerList extends AppCompatActivity implements AdapterView.OnItemC
         cv.put(FROM[0], name);
         cv.put(FROM[3], info);
 
-
         db.update(tb_name, cv, "_id="+id, null);	// 更新 id 所指的欄位
     }
 
@@ -71,7 +70,7 @@ public class MarkerList extends AppCompatActivity implements AdapterView.OnItemC
         btnUpdate.setEnabled(false);	// 停用更新鈕
         btnDelete.setEnabled(false);	// 停用刪除鈕
     }
-    //@Override
+
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         cur.moveToPosition(position); //	移動 Cursor 至使用者選取的項目
 
@@ -98,5 +97,4 @@ public class MarkerList extends AppCompatActivity implements AdapterView.OnItemC
         db.delete(tb_name, "_id="+cur.getInt(0),null);
         requery();
     }
-
 }

@@ -2,14 +2,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.googlemaptest.MainActivity">
-    <item android:id="@+id/markersetting" android:title="設定Marker" />
-    <item android:id="@+id/markerlist" android:title="Marker列表" />
-    <item android:id="@+id/satellite" android:title="顯示衛星圖"
-        android:checkable="true" />
-    <item android:id="@+id/traffic" android:title="顯示交通狀況"
-        android:checkable="true" />
-    <item android:id="@+id/currLoction" android:title="移到目前位置" />
-    <item android:id="@+id/setGPS" android:title="設定定位服務" />
-    <item android:id="@+id/about" android:title="關於 GoogleMapTest" />*/
+    <item android:id="@+id/currLoction" android:title="currLoction"
+          android:icon="@drawable/ic_action_here" app:showAsAction="ifRoom" />
+    <item android:id="@+id/markersetting" android:title="Setting" />
+    <item android:id="@+id/markerlist" android:title="List" />*/
 
 </menu>

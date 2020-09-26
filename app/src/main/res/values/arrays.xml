@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <array name="MarkerValue">
-        <item>a</item>
-        <item>b</item>
-        <item>c</item>
-        <item>d</item>
-    </array>
-
-    <array name="Marker">
+    <string-array name="MarkerValue">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
-    </array>
+    </string-array>
+
+    <string-array name="Marker">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
 </resources>

@@ -11,10 +11,15 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.loader.content.Loader;
+import androidx.preference.PreferenceManager;
+
 import android.provider.Settings;
 import android.view.View;
 import android.view.Menu;
@@ -59,8 +64,9 @@ public class MainActivity extends AppCompatActivity
     Double latitude;
     Double longitude;
 
-    Marker m = null;
-    SharedPreferences prefs = null;
+    boolean markerSwitch;
+    String markerIcon;
+    final int SETTINGS_ACTIVITY = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,18 +99,85 @@ public class MainActivity extends AppCompatActivity
                 "longitude REAL(64), " +	//座標欄位
                 "info VARCHAR(64))" ;	//資訊欄位
         db.execSQL(createTable);	// 建立資料表
-        
+
         //db.close();
     }
 
+    public void LoadMarker (int mt) {
+        Cursor c = db.rawQuery("SELECT * FROM "+tb_name, null );
+
+        int[] markerType = new int[5];
+        markerType[1] = R.drawable.m1;
+        markerType[2] = R.drawable.m2;
+        markerType[3] = R.drawable.m3;
+        markerType[4] = R.drawable.m4;
+
+        int MarkerCount = c.getCount();
+        c.moveToFirst();
+        for(int i = 0; i<MarkerCount; i++) {
+        String name = c.getString(1);
+        double lat = c.getDouble(2);
+        double lng = c.getDouble(3);
+        String info = c.getString(4);
+        LatLng thePoint = new LatLng(lat, lng);
+        map.addMarker(new MarkerOptions()
+                .position(thePoint)
+                .title(name)
+                .snippet(info)
+                .icon(BitmapDescriptorFactory.fromResource(markerType[mt])));
+        c.moveToNext();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == SETTINGS_ACTIVITY){
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            markerSwitch = prefs.getBoolean("switch_preference_1", true);
+            markerIcon = prefs.getString("list_preference_1", "1");
+            if(markerSwitch == true){
+                int i = Integer.parseInt(markerIcon);
+                LoadMarker(i);
+                switch(markerIcon){
+                    case "1":
+                        map.clear();
+                        LoadMarker(1);
+                        break;
+                    case "2":
+                        map.clear();
+                        LoadMarker(2);
+                        break;
+                    case "3":
+                        map.clear();
+                        LoadMarker(3);
+                        break;
+                    case "4":
+                        map.clear();
+                        LoadMarker(4);
+                        break;
+                }
+            }
+            else
+                map.clear();
+        }
+    }
 
     @Override
     public void onMapLongClick(LatLng point) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        markerIcon = prefs.getString("list_preference_1", "1");
+        int mt = Integer.parseInt(markerIcon);
+        int[] markerType = new int[5];
+        markerType[1] = R.drawable.m1;
+        markerType[2] = R.drawable.m2;
+        markerType[3] = R.drawable.m3;
+        markerType[4] = R.drawable.m4;
         map.addMarker(new MarkerOptions()
                 .position(point)
                 .title("新增地標")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.m1)));
+                .icon(BitmapDescriptorFactory.fromResource(markerType[mt])));
 
         latitude = point.latitude;
         longitude = point.longitude;
@@ -147,43 +220,17 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) { // 依照選項的 id 來處理
             case R.id.markersetting:
-                Intent it = new Intent();
-                it.setClass(this, com.example.googlemaptest.Settings.class);
-                startActivity(it);
+                startActivityForResult
+                        (new Intent(this, com.example.googlemaptest.Settings.class), SETTINGS_ACTIVITY);
                 break;
             case R.id.markerlist:
                 Intent it2 = new Intent();
                 it2.setClass(this, MarkerList.class);
                 startActivity(it2);
                 break;
-            case R.id.satellite:
-                item.setChecked(!item.isChecked()); // 切換功能表項目的打勾狀態
-                if(item.isChecked())               // 設定是否顯示衛星圖
-                    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                else
-                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                break;
-            case R.id.traffic:
-                item.setChecked(!item.isChecked()); // 切換功能表項目的打勾狀態
-                map.setTrafficEnabled(item.isChecked()); // 設定是否顯示交通圖
-                break;
             case R.id.currLoction:
                 map.animateCamera( // 將地圖中心點移到目前位置
                         CameraUpdateFactory.newLatLng(currPoint));
-                break;
-            case R.id.setGPS:
-                Intent i = new Intent( // 利用 Intent 啟動系統的定位服務設定
-                        Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(i);
-                break;
-            case R.id.about:
-                new AlertDialog.Builder(this) // 用交談窗顯示程式版本與版權聲明
-                        .setTitle("關於 GoogleMapTest")
-                        .setMessage("GoogleMapTest 體驗版 v1.0\nCopyright 2020 Jeremy Chen.\n\n" +
-                                "Marker1 by Good Ware\nMarker2 by Pixel Perfect\n" +
-                                "Marker3 by Freepik\nMarker4 by fjstudio")
-                        .setPositiveButton("關閉", null)
-                        .show();
                 break;
         }
 
@@ -281,5 +328,7 @@ public class MainActivity extends AppCompatActivity
         map.getUiSettings().setMyLocationButtonEnabled(true);
         map.getUiSettings().setMapToolbarEnabled(true);
         map.setOnMapLongClickListener(this);
+
+        onActivityResult(1, 0, null);
     }
 }

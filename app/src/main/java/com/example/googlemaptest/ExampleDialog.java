@@ -53,7 +53,7 @@ public class ExampleDialog extends AppCompatDialogFragment {
                         String info = edtInfo.getText().toString();
                         listener.applyTexts(name, info);
 
-                        ContentValues cv = new ContentValues(2);
+                        ContentValues cv = new ContentValues(4);
                         cv.put("name", name);
                         cv.put("latitude", latitude);
                         cv.put("longitude", longitude);
