@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
@@ -42,7 +41,6 @@ public class ExampleDialog extends AppCompatDialogFragment {
         longitude= bundle.getDouble("longitude");;
 
         db = getActivity().openOrCreateDatabase(db_name,  Context.MODE_PRIVATE, null);
-        //https://stackoverflow.com/questions/24511031/openorcreatedatabase-undefined-in-the-fragment-class
 
         builder.setView(view)
                 .setTitle("新增地標")
