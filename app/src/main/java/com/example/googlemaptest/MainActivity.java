@@ -12,8 +12,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -23,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -118,7 +115,6 @@ public class MainActivity extends AppCompatActivity
 
         int MarkerCount = c.getCount();
         c.moveToFirst();
-        //while
         for (int i = 0; i < MarkerCount; i++) {
             String name = c.getString(1);
             double lat = c.getDouble(2);
@@ -311,11 +307,6 @@ public class MainActivity extends AppCompatActivity
     private void updateUIValues(Location location) {
         Toast.makeText(this, String.valueOf(location.getLatitude()), Toast.LENGTH_LONG).show();
         Toast.makeText(this, String.valueOf(location.getLongitude()), Toast.LENGTH_LONG).show();
-        /*Double Latitude, Longitude;
-        Latitude = location.getLatitude();
-        Longitude = location.getLongitude();
-        defaultPoint = new LatLng(Latitude, Longitude);
-        map.animateCamera(CameraUpdateFactory.newLatLng(defaultPoint));*/
     }
 
     @Override
@@ -386,25 +377,5 @@ public class MainActivity extends AppCompatActivity
         map.getUiSettings().setMapToolbarEnabled(true);
         map.setOnMapLongClickListener(this);
         onActivityResult(1, 0, null);
-
-        //isGPSEnabled = mgr.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        //isNetworkEnabled = mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        /*if (isGPSEnabled && !isNetworkEnabled) {
-            point = new LatLng(25.0616728, 121.645966);
-            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-            checkPermission();
-            fusedLocationProviderClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                if (map != null) {             // 如果 Google Map 已經啟動完畢
-                                    map.animateCamera(CameraUpdateFactory.newLatLng(point)); // 將地圖中心點移到目前位置
-                                }
-                            }
-                        }
-                    });
-        }*/
     }
 }
