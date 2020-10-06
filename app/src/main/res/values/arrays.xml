@@ -8,9 +8,9 @@
     </string-array>
 
     <string-array name="Marker">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
+        <item>picture1</item>
+        <item>picture2</item>
+        <item>picture3</item>
+        <item>picture4</item>
     </string-array>
 </resources>
