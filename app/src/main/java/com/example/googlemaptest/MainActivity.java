@@ -12,8 +12,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +23,9 @@ import androidx.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,7 +41,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,7 +54,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity
         implements LocationListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener
-        , ExampleDialog.ExampleDialogListener,  NavigationView.OnNavigationItemSelectedListener{
+        , ExampleDialog.ExampleDialogListener{
 
     private GoogleMap map;  //操控地圖的物件
     LatLng currPoint;   //儲存目前的位置
@@ -83,10 +83,16 @@ public class MainActivity extends AppCompatActivity
     private static final int PERMISSIONS_FINE_LOCATION = 99;
 
     private DrawerLayout drawer;
-    String json_string;
+    //String json_string;
+    String mJsonString = null;
     NavigationView navigationView;
     ListView lv;
     ContactAdapter contactAdapter;
+    JSONObject mJsonObj = null;
+    JSONArray jsonArray;
+    Button btnMove;
+    LatLng mMoveToPoint;
+    Adapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,8 +102,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         /*-------------------------------------------------------------------*/
-        setNavigationViewListener();
-
         drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -105,7 +109,6 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-
         OkHttpClient client = new OkHttpClient();
         FormBody formBody = new FormBody.Builder()
                 .build();
@@ -127,16 +130,14 @@ public class MainActivity extends AppCompatActivity
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            json_string = myResponse;
+                            mJsonString = myResponse;
+                            LoadList();
                         }
                     });
                 }
             }
         });
 
-        lv = (ListView) findViewById(R.id.lv);
-        lv.setAdapter(contactAdapter);
-        contactAdapter = new ContactAdapter(this, R.layout.device_item);
         /*-------------------------------------------------------------------*/
 
         //取得系統服務的LocationManager物件
@@ -183,18 +184,48 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Intent intent = new Intent(this, DisplayListView.class);
-        intent.putExtra("json_data", json_string);
-        startActivity(intent);
-        return false;
+    public void LoadList(){
+        lv = (ListView) findViewById(R.id.lv);
+        lv.setBackgroundResource(R.drawable.customshape);
+        contactAdapter = new ContactAdapter(this, R.layout.device_item);
+        lv.setAdapter(contactAdapter);
+        try {
+            if( mJsonString == null )
+                return;
+
+            mJsonObj = new JSONObject(mJsonString);
+
+            jsonArray = mJsonObj.getJSONArray("ids");
+            int count=0;
+            String name;
+            Long dev_id;
+            Double x, y;
+            int spd;
+            while(count<jsonArray.length()){
+                JSONObject JO = jsonArray.getJSONObject(count);
+                name = JO.getString("name");
+                dev_id = JO.getLong("dev_id");
+                x = JO.getDouble("x");
+                y = JO.getDouble("y");
+                spd = JO.getInt("spd");
+                Contacts contacts = new Contacts(name, dev_id, x, y , spd);
+                contactAdapter.add(contacts);
+                count++;
+            }
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //mMoveToPoint = new LatLng(parent.getAdapter().getItem(position),lv.getY());
+                map.animateCamera(CameraUpdateFactory.newLatLng(mMoveToPoint));
+            }
+        });
     }
 
-    private void setNavigationViewListener() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
     /*-------------------------------------------------------------------*/
 
     public void LoadMarker(int mt) {

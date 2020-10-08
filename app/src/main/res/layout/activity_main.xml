@@ -34,17 +34,13 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:menu="@menu/drawer_menu">
-        <LinearLayout
+
+        <ListView
+            android:id="@+id/lv"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="591dp"
+            android:layout_marginTop="80dp" />
 
-            <ListView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/lv" />
-
-        </LinearLayout>
     </com.google.android.material.navigation.NavigationView>
 
 
