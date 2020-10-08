@@ -12,13 +12,20 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,10 +39,22 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.navigation.NavigationView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity
         implements LocationListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener
-        , ExampleDialog.ExampleDialogListener {
+        , ExampleDialog.ExampleDialogListener,  NavigationView.OnNavigationItemSelectedListener{
 
     private GoogleMap map;  //操控地圖的物件
     LatLng currPoint;   //儲存目前的位置
@@ -63,12 +82,62 @@ public class MainActivity extends AppCompatActivity
     public static final int FAST_UPDATE_INTERVAL = 5;
     private static final int PERMISSIONS_FINE_LOCATION = 99;
 
+    private DrawerLayout drawer;
+    String json_string;
+    NavigationView navigationView;
+    ListView lv;
+    ContactAdapter contactAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        /*-------------------------------------------------------------------*/
+        setNavigationViewListener();
+
+        drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        OkHttpClient client = new OkHttpClient();
+        FormBody formBody = new FormBody.Builder()
+                .build();
+        String url = "http://srv.avema.com.tw:7000/api/dbgGetDevice";
+        Request request = new Request.Builder()
+                .url(url)
+                .post(formBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if(response.isSuccessful()){
+                    final String myResponse = response.body().string();
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            json_string = myResponse;
+                        }
+                    });
+                }
+            }
+        });
+
+        lv = (ListView) findViewById(R.id.lv);
+        lv.setAdapter(contactAdapter);
+        contactAdapter = new ContactAdapter(this, R.layout.device_item);
+        /*-------------------------------------------------------------------*/
 
         //取得系統服務的LocationManager物件
         mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -103,6 +172,30 @@ public class MainActivity extends AppCompatActivity
 
         //db.close();
     }
+
+    /*-------------------------------------------------------------------*/
+    @Override
+    public void onBackPressed(){
+        if (drawer.isDrawerOpen(GravityCompat.START)){
+            drawer.closeDrawer(GravityCompat.START);
+        }
+        else
+            super.onBackPressed();
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        Intent intent = new Intent(this, DisplayListView.class);
+        intent.putExtra("json_data", json_string);
+        startActivity(intent);
+        return false;
+    }
+
+    private void setNavigationViewListener() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+    /*-------------------------------------------------------------------*/
 
     public void LoadMarker(int mt) {
         Cursor c = db.rawQuery("SELECT * FROM " + tb_name, null);
@@ -378,4 +471,5 @@ public class MainActivity extends AppCompatActivity
         map.setOnMapLongClickListener(this);
         onActivityResult(1, 0, null);
     }
+
 }
